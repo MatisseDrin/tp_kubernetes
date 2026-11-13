@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prod-app-deployment
+
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: reverse-proxy
+  template:
+    metadata:
+      labels:
+        app: reverse-proxy
+    spec:
+      containers:
+      - name: prod-app
+        image: paulbouwer/hello-kubernetes:1.10.1
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "100m"    # 10% d'un vCPU
+            memory: "64Mi" # 64 Mebibytes
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
+        livenessProbe:
+          httpGet: 
+            path: /
+            port: 8080
+        readinessProbe:
+          initialDelaySeconds: 10
+          httpGet:
+            path: /
+            port: 8080
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
